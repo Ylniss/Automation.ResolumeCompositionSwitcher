@@ -10,6 +10,8 @@ public interface ICompositionSwitcher
     bool SwitchingEnabled { get; }
     int CurrentColumn { get; set; }
 
+    int SwitchIntervalMs { get; }
+
     void ToggleSwitching(bool toggle);
 
     event EventHandler OnSwitchColumn;

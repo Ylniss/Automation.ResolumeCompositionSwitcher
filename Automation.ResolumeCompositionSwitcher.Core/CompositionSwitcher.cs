@@ -11,6 +11,8 @@ public class CompositionSwitcher : ICompositionSwitcher
 
     public event EventHandler OnSwitchColumn;
 
+    public int SwitchIntervalMs => 45;
+
     public int CurrentColumn { get; set; } = 1;
 
     public bool SwitchingEnabled { get; private set; } = false;

@@ -7,11 +7,8 @@ public class PlayPauseButton : Button
 
     public void TogglePlay(bool play)
     {
-        SetButtonImage(play); Play = play;
-        //if (InvokeRequired)
-        //{
-        //    Invoke(new MethodInvoker(() => { SetButtonImage(play); Play = play; }));
-        //}
+        SetButtonImage(play);
+        Play = play;
     }
 
     private void SetButtonImage(bool play)

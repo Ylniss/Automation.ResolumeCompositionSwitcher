@@ -58,14 +58,15 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             {
                 SendKeys.SendWait(SwitchBackwardColumnKey);
             }
+
             currentColumnNumeric.SetValue(_compositionSwitcher.CurrentColumn);
 
-            Thread.Sleep(35);
+            Thread.Sleep(_compositionSwitcher.SwitchIntervalMs);
         }
 
         private void playPauseButton_Click(object sender, EventArgs e)
         {
-            if (!playPauseButton.Enabled)
+            if (!playPauseButton.Enabled && _compositionSwitcher.ResolumeArenaProcess.IsProccessInForeground())
                 return;
 
             if (playPauseButton.IsPaused)
