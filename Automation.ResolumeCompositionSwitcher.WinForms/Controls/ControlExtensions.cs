@@ -17,4 +17,12 @@ public static class ControlExtensions
             control.Invoke(new MethodInvoker(() => { control.Enabled = enabled; control.BackColor = enabled ? Color.Gray : Color.DimGray; }));
         }
     }
+
+    public static void SetValue(this NumericUpDown numeric, int value)
+    {
+        if (numeric.InvokeRequired)
+        {
+            numeric.Invoke(new MethodInvoker(() => { numeric.Value = value; }));
+        }
+    }
 }

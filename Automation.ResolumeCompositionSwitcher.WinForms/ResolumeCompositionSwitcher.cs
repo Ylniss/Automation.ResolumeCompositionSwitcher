@@ -7,7 +7,8 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 {
     public partial class ResolumeCompositionSwitcher : Form
     {
-        private const string SwitchColumnKey = "{=}";
+        private const string SwitchForwardColumnKey = "{=}";
+        private const string SwitchBackwardColumnKey = "{-}";
 
         private readonly ICompositionSwitcher _compositionSwitcher;
 
@@ -17,14 +18,14 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             _compositionSwitcher = compositionSwitcher;
             _compositionSwitcher.CompositionParams = new CompositionParams
             {
-                NumberOfColumns = 77,
-                MinTimeToChangeMs = 1000,
-                MaxTimeToChangeMs = 3000
+                NumberOfColumns = (int)numberOfColumnsNumeric.Value,
+                MinTimeToChangeMs = (int)minTimeToChangeMsNumeric.Value,
+                MaxTimeToChangeMs = (int)maxTimeToChangeMsNumeric.Value
             };
 
             _compositionSwitcher.ResolumeArenaProcess.OnProcessConnected += ResolumeArenaProcess_OnProcessConnected;
             _compositionSwitcher.ResolumeArenaProcess.OnProcessSetToForeground += ResolumeArenaProcess_OnProcessSetToForeground;
-            _compositionSwitcher.OnSwitchToNextColumn += _compositionSwitcher_OnSwitchToNextColumn;
+            _compositionSwitcher.OnSwitchColumn += _compositionSwitcher_OnSwitchColumn;
         }
 
         private void ResolumeArenaProcess_OnProcessConnected(object? sender, EventArgs e)
@@ -45,9 +46,21 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             }
         }
 
-        private void _compositionSwitcher_OnSwitchToNextColumn(object? sender, EventArgs e)
+        private void _compositionSwitcher_OnSwitchColumn(object? sender, EventArgs e)
         {
-            SendKeys.SendWait(SwitchColumnKey);
+            var switchDirection = e as SwitchDirectionEventArgs;
+
+            if (switchDirection.Forward)
+            {
+                SendKeys.SendWait(SwitchForwardColumnKey);
+            }
+            else
+            {
+                SendKeys.SendWait(SwitchBackwardColumnKey);
+            }
+            currentColumnNumeric.SetValue(_compositionSwitcher.CurrentColumn);
+
+            Thread.Sleep(35);
         }
 
         private void playPauseButton_Click(object sender, EventArgs e)
@@ -70,6 +83,43 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         {
             playPauseButton.TogglePlay(toggle);
             _compositionSwitcher.ToggleSwitching(toggle);
+        }
+
+        private void numberOfColumnsNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            _compositionSwitcher.CompositionParams = new CompositionParams()
+            {
+                NumberOfColumns = (int)numberOfColumnsNumeric.Value,
+                MinTimeToChangeMs = _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
+                MaxTimeToChangeMs = _compositionSwitcher.CompositionParams.MaxTimeToChangeMs,
+            };
+
+            ToggleSwitcher(false);
+        }
+
+        private void minTimeToChangeMsNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            _compositionSwitcher.CompositionParams = new CompositionParams()
+            {
+                NumberOfColumns = _compositionSwitcher.CompositionParams.NumberOfColumns,
+                MinTimeToChangeMs = (int)minTimeToChangeMsNumeric.Value,
+                MaxTimeToChangeMs = _compositionSwitcher.CompositionParams.MaxTimeToChangeMs,
+            };
+        }
+
+        private void maxTimeToChangeMsNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            _compositionSwitcher.CompositionParams = new CompositionParams()
+            {
+                NumberOfColumns = _compositionSwitcher.CompositionParams.NumberOfColumns,
+                MinTimeToChangeMs = _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
+                MaxTimeToChangeMs = (int)maxTimeToChangeMsNumeric.Value,
+            };
+        }
+
+        private void currentColumnNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            _compositionSwitcher.CurrentColumn = (int)currentColumnNumeric.Value;
         }
     }
 }

@@ -8,8 +8,9 @@ public interface ICompositionSwitcher
     CompositionParams CompositionParams { get; set; }
     ResolumeArenaProcess ResolumeArenaProcess { get; init; }
     bool SwitchingEnabled { get; }
+    int CurrentColumn { get; set; }
 
     void ToggleSwitching(bool toggle);
 
-    event EventHandler OnSwitchToNextColumn;
+    event EventHandler OnSwitchColumn;
 }
