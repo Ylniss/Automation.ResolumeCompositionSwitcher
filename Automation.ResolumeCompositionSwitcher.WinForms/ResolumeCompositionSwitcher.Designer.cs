@@ -68,9 +68,8 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.isAppInForegroundLabel.ForeColor = System.Drawing.Color.Gainsboro;
             this.isAppInForegroundLabel.Location = new System.Drawing.Point(465, 18);
             this.isAppInForegroundLabel.Name = "isAppInForegroundLabel";
-            this.isAppInForegroundLabel.Size = new System.Drawing.Size(206, 23);
+            this.isAppInForegroundLabel.Size = new System.Drawing.Size(0, 23);
             this.isAppInForegroundLabel.TabIndex = 1;
-            this.isAppInForegroundLabel.Text = "is app in foreground label";
             // 
             // playPauseButton
             // 
