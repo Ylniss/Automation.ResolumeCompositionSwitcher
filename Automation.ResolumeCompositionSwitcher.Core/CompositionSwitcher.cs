@@ -59,8 +59,8 @@ public class CompositionSwitcher : ICompositionSwitcher
             for (int i = 1; i <= Math.Abs(moveSize); ++i)
             {
                 if (!SwitchingEnabled) break;
-                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = true });
                 CurrentColumn++;
+                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = true });
             }
         }
         else
@@ -68,8 +68,8 @@ public class CompositionSwitcher : ICompositionSwitcher
             for (int i = 1; i <= Math.Abs(moveSize); ++i)
             {
                 if (!SwitchingEnabled) break;
-                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = false });
                 CurrentColumn--;
+                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = false });
             }
         }
     }
