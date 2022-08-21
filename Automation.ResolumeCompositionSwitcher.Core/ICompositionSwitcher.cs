@@ -15,4 +15,6 @@ public interface ICompositionSwitcher
     void ToggleSwitching(bool toggle);
 
     event EventHandler OnSwitchColumn;
+
+    event EventHandler OnRandomizedSleepTime;
 }

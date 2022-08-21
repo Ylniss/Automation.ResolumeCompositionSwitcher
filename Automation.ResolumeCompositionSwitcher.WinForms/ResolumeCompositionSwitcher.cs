@@ -2,6 +2,7 @@ using Automation.ResolumeCompositionSwitcher.Core;
 using Automation.ResolumeCompositionSwitcher.Core.Models;
 using Automation.ResolumeCompositionSwitcher.Core.Params;
 using Automation.ResolumeCompositionSwitcher.WinForms.Controls;
+using System.Diagnostics;
 
 namespace Automation.ResolumeCompositionSwitcher.WinForms
 {
@@ -26,6 +27,26 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             _compositionSwitcher.ResolumeArenaProcess.OnProcessConnected += ResolumeArenaProcess_OnProcessConnected;
             _compositionSwitcher.ResolumeArenaProcess.OnProcessSetToForeground += ResolumeArenaProcess_OnProcessSetToForeground;
             _compositionSwitcher.OnSwitchColumn += _compositionSwitcher_OnSwitchColumn;
+            _compositionSwitcher.OnRandomizedSleepTime += _compositionSwitcher_OnRandomizedSleepTime;
+        }
+
+        private void _compositionSwitcher_OnRandomizedSleepTime(object? sender, EventArgs e)
+        {
+            var sleepTimeMs = (e as SleepTimeEventArgs).SleepTimeMs;
+
+            Task.Run(() =>
+            {
+                var stopWatch = new Stopwatch();
+
+                stopWatch.Start();
+                var elapsedMs = sleepTimeMs;
+                while (elapsedMs > 0)
+                {
+                    elapsedMs = sleepTimeMs - (int)stopWatch.ElapsedMilliseconds;
+                    nextSwitchMsTextBox.SetText(elapsedMs.ToString());
+                }
+                stopWatch.Stop();
+            });
         }
 
         private void ResolumeArenaProcess_OnProcessConnected(object? sender, EventArgs e)
@@ -64,9 +85,9 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             Thread.Sleep(_compositionSwitcher.SwitchIntervalMs);
         }
 
-        private void playPauseButton_Click(object sender, EventArgs e)
+        private void playPauseButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (!playPauseButton.Enabled && _compositionSwitcher.ResolumeArenaProcess.IsProccessInForeground())
+            if (!playPauseButton.Enabled || _compositionSwitcher.ResolumeArenaProcess.IsProccessInForeground())
                 return;
 
             if (playPauseButton.IsPaused)

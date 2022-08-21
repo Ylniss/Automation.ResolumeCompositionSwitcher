@@ -11,6 +11,8 @@ public class CompositionSwitcher : ICompositionSwitcher
 
     public event EventHandler OnSwitchColumn;
 
+    public event EventHandler OnRandomizedSleepTime;
+
     public int SwitchIntervalMs => 45;
 
     public int CurrentColumn { get; set; } = 1;
@@ -32,14 +34,15 @@ public class CompositionSwitcher : ICompositionSwitcher
     {
         ResolumeArenaProcess.SetProcessToForeground();
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             while (true)
             {
                 if (!ResolumeArenaProcess.IsProccessInForeground() || !SwitchingEnabled || CompositionParams is null) continue;
 
                 RandomizeColumn();
-                Thread.Sleep(GetRandomizedSleepTimeMs());
+
+                await Task.Delay(GetRandomizedSleepTimeMs());
             }
         });
     }
@@ -55,6 +58,7 @@ public class CompositionSwitcher : ICompositionSwitcher
         {
             for (int i = 1; i <= Math.Abs(moveSize); ++i)
             {
+                if (!SwitchingEnabled) break;
                 OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = true });
                 CurrentColumn++;
             }
@@ -63,6 +67,7 @@ public class CompositionSwitcher : ICompositionSwitcher
         {
             for (int i = 1; i <= Math.Abs(moveSize); ++i)
             {
+                if (!SwitchingEnabled) break;
                 OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = false });
                 CurrentColumn--;
             }
@@ -72,6 +77,10 @@ public class CompositionSwitcher : ICompositionSwitcher
     private int GetRandomizedSleepTimeMs()
     {
         var randomizer = new Random();
-        return randomizer.Next(CompositionParams.MinTimeToChangeMs, CompositionParams.MaxTimeToChangeMs + 1);
+        var sleepTimeMs = randomizer.Next(CompositionParams.MinTimeToChangeMs, CompositionParams.MaxTimeToChangeMs + 1);
+
+        OnRandomizedSleepTime(this, new SleepTimeEventArgs() { SleepTimeMs = sleepTimeMs });
+
+        return sleepTimeMs;
     }
 }
