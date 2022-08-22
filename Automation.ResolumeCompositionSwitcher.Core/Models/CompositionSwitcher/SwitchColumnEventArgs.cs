@@ -1,6 +1,6 @@
 ﻿namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
-public class SleepTimeEventArgs : EventArgs
+public class SwitchColumnEventArgs : EventArgs
 {
-    public int SleepTimeMs { get; init; }
+    public int Column { get; init; }
 }

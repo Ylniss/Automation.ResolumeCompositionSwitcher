@@ -31,7 +31,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         private void InitializeComponent()
         {
             this.connectionStatusLabel = new System.Windows.Forms.Label();
-            this.isAppInForegroundLabel = new System.Windows.Forms.Label();
             this.playPauseButton = new Automation.ResolumeCompositionSwitcher.WinForms.Controls.PlayPauseButton();
             this.numberOfColumnsLabel = new System.Windows.Forms.Label();
             this.minTimeToChangeMsLabel = new System.Windows.Forms.Label();
@@ -40,14 +39,13 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.minTimeToChangeMsNumeric = new System.Windows.Forms.NumericUpDown();
             this.maxTimeToChangeMsNumeric = new System.Windows.Forms.NumericUpDown();
             this.currentColumnLabel = new System.Windows.Forms.Label();
-            this.currentColumnNumeric = new System.Windows.Forms.NumericUpDown();
             this.nextSwitchInLabel = new System.Windows.Forms.Label();
             this.nextSwitchMsTextBox = new System.Windows.Forms.TextBox();
             this.msUnitLabel = new System.Windows.Forms.Label();
+            this.currentColumnTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfColumnsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.minTimeToChangeMsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxTimeToChangeMsNumeric)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.currentColumnNumeric)).BeginInit();
             this.SuspendLayout();
             // 
             // connectionStatusLabel
@@ -57,19 +55,9 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.connectionStatusLabel.ForeColor = System.Drawing.Color.Gainsboro;
             this.connectionStatusLabel.Location = new System.Drawing.Point(17, 18);
             this.connectionStatusLabel.Name = "connectionStatusLabel";
-            this.connectionStatusLabel.Size = new System.Drawing.Size(186, 23);
+            this.connectionStatusLabel.Size = new System.Drawing.Size(213, 23);
             this.connectionStatusLabel.TabIndex = 0;
-            this.connectionStatusLabel.Text = "connection status label";
-            // 
-            // isAppInForegroundLabel
-            // 
-            this.isAppInForegroundLabel.AutoSize = true;
-            this.isAppInForegroundLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.isAppInForegroundLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.isAppInForegroundLabel.Location = new System.Drawing.Point(465, 18);
-            this.isAppInForegroundLabel.Name = "isAppInForegroundLabel";
-            this.isAppInForegroundLabel.Size = new System.Drawing.Size(0, 23);
-            this.isAppInForegroundLabel.TabIndex = 1;
+            this.connectionStatusLabel.Text = "Composition disconnected";
             // 
             // playPauseButton
             // 
@@ -219,34 +207,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.currentColumnLabel.TabIndex = 10;
             this.currentColumnLabel.Text = "Current Column";
             // 
-            // currentColumnNumeric
-            // 
-            this.currentColumnNumeric.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(55)))), ((int)(((byte)(55)))), ((int)(((byte)(55)))));
-            this.currentColumnNumeric.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.currentColumnNumeric.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.currentColumnNumeric.ForeColor = System.Drawing.Color.Gainsboro;
-            this.currentColumnNumeric.Location = new System.Drawing.Point(230, 385);
-            this.currentColumnNumeric.Maximum = new decimal(new int[] {
-            10000,
-            0,
-            0,
-            0});
-            this.currentColumnNumeric.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.currentColumnNumeric.Name = "currentColumnNumeric";
-            this.currentColumnNumeric.Size = new System.Drawing.Size(97, 30);
-            this.currentColumnNumeric.TabIndex = 11;
-            this.currentColumnNumeric.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.currentColumnNumeric.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.currentColumnNumeric.ValueChanged += new System.EventHandler(this.currentColumnNumeric_ValueChanged);
-            // 
             // nextSwitchInLabel
             // 
             this.nextSwitchInLabel.AutoSize = true;
@@ -284,16 +244,29 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.msUnitLabel.TabIndex = 14;
             this.msUnitLabel.Text = "ms";
             // 
+            // currentColumnTextBox
+            // 
+            this.currentColumnTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
+            this.currentColumnTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.currentColumnTextBox.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.currentColumnTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.currentColumnTextBox.Location = new System.Drawing.Point(179, 387);
+            this.currentColumnTextBox.Name = "currentColumnTextBox";
+            this.currentColumnTextBox.Size = new System.Drawing.Size(91, 27);
+            this.currentColumnTextBox.TabIndex = 15;
+            this.currentColumnTextBox.Text = "0";
+            this.currentColumnTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
             // ResolumeCompositionSwitcher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.currentColumnTextBox);
             this.Controls.Add(this.msUnitLabel);
             this.Controls.Add(this.nextSwitchMsTextBox);
             this.Controls.Add(this.nextSwitchInLabel);
-            this.Controls.Add(this.currentColumnNumeric);
             this.Controls.Add(this.currentColumnLabel);
             this.Controls.Add(this.maxTimeToChangeMsNumeric);
             this.Controls.Add(this.minTimeToChangeMsNumeric);
@@ -302,7 +275,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.Controls.Add(this.minTimeToChangeMsLabel);
             this.Controls.Add(this.numberOfColumnsLabel);
             this.Controls.Add(this.playPauseButton);
-            this.Controls.Add(this.isAppInForegroundLabel);
             this.Controls.Add(this.connectionStatusLabel);
             this.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -313,7 +285,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             ((System.ComponentModel.ISupportInitialize)(this.numberOfColumnsNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.minTimeToChangeMsNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxTimeToChangeMsNumeric)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.currentColumnNumeric)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -322,7 +293,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         #endregion
 
         private Label connectionStatusLabel;
-        private Label isAppInForegroundLabel;
         private PlayPauseButton playPauseButton;
         private Label numberOfColumnsLabel;
         private Label minTimeToChangeMsLabel;
@@ -331,9 +301,9 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         private NumericUpDown minTimeToChangeMsNumeric;
         private NumericUpDown maxTimeToChangeMsNumeric;
         private Label currentColumnLabel;
-        private NumericUpDown currentColumnNumeric;
         private Label nextSwitchInLabel;
         private TextBox nextSwitchMsTextBox;
         private Label msUnitLabel;
+        private TextBox currentColumnTextBox;
     }
 }

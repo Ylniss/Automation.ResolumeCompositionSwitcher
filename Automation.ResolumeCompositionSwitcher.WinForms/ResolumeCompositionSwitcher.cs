@@ -1,6 +1,5 @@
 using Automation.ResolumeCompositionSwitcher.Core.Models;
 using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
-using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeArenaProcessWrapper;
 using Automation.ResolumeCompositionSwitcher.WinForms.Controls;
 using System.Diagnostics;
 
@@ -8,9 +7,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 {
     public partial class ResolumeCompositionSwitcher : Form
     {
-        private const string SwitchBackwardColumnKey = "{[}";
-        private const string SwitchForwardColumnKey = "{]}";
-
         private readonly CompositionSwitcher _compositionSwitcher;
 
         public ResolumeCompositionSwitcher()
@@ -24,15 +20,26 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 
             _compositionSwitcher = new CompositionSwitcher(compositionParams);
 
-            _compositionSwitcher.ResolumeArenaProcess.OnProcessConnectionStatusChanged += ResolumeArenaProcess_OnProcessConnectionStatusChanged;
-            _compositionSwitcher.ResolumeArenaProcess.OnProcessForegroundChanged += ResolumeArenaProcess_OnProcessForegroundChanged;
-            _compositionSwitcher.OnSwitchColumn += _compositionSwitcher_OnSwitchColumn;
-            _compositionSwitcher.OnRandomizedSleepTime += _compositionSwitcher_OnRandomizedSleepTime;
+            _compositionSwitcher.OnColumnSwitch += _compositionSwitcher_OnColumnSwitch;
+            _compositionSwitcher.OnResolumeApiConnectionChanged += _compositionSwitcher_OnResolumeApiConnectionChanged;
+            _compositionSwitcher.OnRandomizedSwitchInterval += _compositionSwitcher_OnRandomizedSwitchInterval;
         }
 
-        private void _compositionSwitcher_OnRandomizedSleepTime(object? sender, EventArgs e)
+        private void _compositionSwitcher_OnResolumeApiConnectionChanged(object? sender, EventArgs e)
         {
-            var sleepTimeMs = (e as SleepTimeEventArgs).SleepTimeMs;
+            var message = (e as MessageEventArgs).Message;
+            connectionStatusLabel.SetText(message);
+        }
+
+        private void _compositionSwitcher_OnColumnSwitch(object? sender, EventArgs e)
+        {
+            var column = (e as SwitchColumnEventArgs).Column;
+            currentColumnTextBox.SetText(column.ToString());
+        }
+
+        private void _compositionSwitcher_OnRandomizedSwitchInterval(object? sender, EventArgs e)
+        {
+            var sleepTimeMs = (e as SwitchIntervalEventArgs).IntervalMs;
 
             Task.Run(() =>
             {
@@ -49,56 +56,12 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             });
         }
 
-        private void ResolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, EventArgs e)
-        {
-            var text = (e as MessageEventArgs).Message;
-            connectionStatusLabel.SetText(text);
-            playPauseButton.SetEnabled(_compositionSwitcher.ResolumeArenaProcess.Connected);
-        }
-
-        private void ResolumeArenaProcess_OnProcessForegroundChanged(object? sender, EventArgs e)
-        {
-            var processVisibility = e as ProcessForegroundEventArgs;
-            isAppInForegroundLabel.SetText(processVisibility.Message);
-
-            if (!processVisibility.IsInForeground)
-            {
-                ToggleSwitcher(false);
-            }
-        }
-
-        private void _compositionSwitcher_OnSwitchColumn(object? sender, EventArgs e)
-        {
-            var switchDirection = e as SwitchDirectionEventArgs;
-
-            if (switchDirection.Forward)
-            {
-                SendKeys.SendWait(SwitchForwardColumnKey);
-            }
-            else
-            {
-                SendKeys.SendWait(SwitchBackwardColumnKey);
-            }
-
-            currentColumnNumeric.SetValue(_compositionSwitcher.CurrentColumn);
-
-            Thread.Sleep(_compositionSwitcher.SwitchIntervalMs);
-        }
-
         private void playPauseButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (!playPauseButton.Enabled || _compositionSwitcher.ResolumeArenaProcess.IsInForeground())
+            if (!playPauseButton.Enabled)
                 return;
 
-            if (playPauseButton.IsPaused)
-            {
-                _compositionSwitcher.ResolumeArenaProcess.SetToForeground();
-                ToggleSwitcher(true);
-            }
-            else
-            {
-                ToggleSwitcher(false);
-            }
+            ToggleSwitcher(playPauseButton.IsPaused);
         }
 
         private void ToggleSwitcher(bool toggle)
@@ -131,11 +94,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
                 _compositionSwitcher.CompositionParams.NumberOfColumns,
                 _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
                 (int)maxTimeToChangeMsNumeric.Value);
-        }
-
-        private void currentColumnNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            _compositionSwitcher.CurrentColumn = (int)currentColumnNumeric.Value;
         }
     }
 }

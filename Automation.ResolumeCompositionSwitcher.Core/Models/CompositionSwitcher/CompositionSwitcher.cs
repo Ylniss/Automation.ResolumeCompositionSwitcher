@@ -1,4 +1,5 @@
-﻿using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeArenaProcessWrapper;
+﻿using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
+using Refit;
 
 namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
@@ -16,19 +17,19 @@ public class CompositionSwitcher
         }
     }
 
-    public ResolumeArenaProcess ResolumeArenaProcess { get; init; }
+    public event EventHandler OnResolumeApiConnectionChanged;
 
-    public event EventHandler OnSwitchColumn;
+    public event EventHandler OnColumnSwitch;
 
-    public event EventHandler OnRandomizedSleepTime;
-
-    public int SwitchIntervalMs => 45;
-
-    public int CurrentColumn { get; set; } = 1;
+    public event EventHandler OnRandomizedSwitchInterval;
 
     public bool SwitchingEnabled { get; private set; } = false;
 
     private ShuffledColumnsQueue _columnsQueue;
+    private int _switchIntervalMs = 0;
+
+    private string _resolumeArenaApiAddress = "http://127.0.0.1:8080/api/v1/";
+    private IResolumeArenaApi _resolumeArenaApi;
 
     public void ToggleSwitching(bool toggle)
     {
@@ -39,60 +40,57 @@ public class CompositionSwitcher
     {
         CompositionParams = compositionParams;
 
-        ResolumeArenaProcess = new ResolumeArenaProcess();
+        _resolumeArenaApi = RestService.For<IResolumeArenaApi>(_resolumeArenaApiAddress);
         RunCompositionColumnSwitcher();
     }
 
     private void RunCompositionColumnSwitcher()
     {
-        ResolumeArenaProcess.SetToForeground();
-
         Task.Run(async () =>
         {
             while (true)
             {
-                if (!ResolumeArenaProcess.IsInForeground() || !SwitchingEnabled || CompositionParams is null) continue;
+                SetRandomizedSwitchIntervalMs();
 
-                SwitchToNextColumn();
+                if (!SwitchingEnabled || CompositionParams is null) continue;
 
-                await Task.Delay(GetRandomizedSleepTimeMs());
+                await SwitchToNextColumn();
+
+                await Task.Delay(_switchIntervalMs);
             }
         });
     }
 
-    private void SwitchToNextColumn()
+    private async Task SwitchToNextColumn()
     {
         int newColumn = _columnsQueue.Dequeue();
 
-        int moveSize = CurrentColumn - newColumn;
-
-        if (moveSize < 0)
+        try
         {
-            for (int i = 1; i <= Math.Abs(moveSize); ++i)
-            {
-                if (!SwitchingEnabled) break;
-                CurrentColumn++;
-                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = true });
-            }
+            await _resolumeArenaApi.ChangeColumn(newColumn);
+        }
+        catch (HttpRequestException)
+        {
+            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Composition disconnected" });
+        }
+
+        OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connected to composition" });
+
+        OnColumnSwitch?.Invoke(this, new SwitchColumnEventArgs() { Column = newColumn });
+    }
+
+    private void SetRandomizedSwitchIntervalMs()
+    {
+        if (SwitchingEnabled)
+        {
+            var randomizer = new Random();
+            _switchIntervalMs = randomizer.Next(_compositionParams.MinTimeToChangeMs, _compositionParams.MaxTimeToChangeMs + 1);
         }
         else
         {
-            for (int i = 1; i <= Math.Abs(moveSize); ++i)
-            {
-                if (!SwitchingEnabled) break;
-                CurrentColumn--;
-                OnSwitchColumn(this, new SwitchDirectionEventArgs() { Forward = false });
-            }
+            _switchIntervalMs = 0;
         }
-    }
 
-    private int GetRandomizedSleepTimeMs()
-    {
-        var randomizer = new Random();
-        var sleepTimeMs = randomizer.Next(_compositionParams.MinTimeToChangeMs, _compositionParams.MaxTimeToChangeMs + 1);
-
-        OnRandomizedSleepTime(this, new SleepTimeEventArgs() { SleepTimeMs = sleepTimeMs });
-
-        return sleepTimeMs;
+        OnRandomizedSwitchInterval?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = _switchIntervalMs });
     }
 }
