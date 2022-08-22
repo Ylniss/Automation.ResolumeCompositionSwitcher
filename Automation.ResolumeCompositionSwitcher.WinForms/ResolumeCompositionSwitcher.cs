@@ -1,6 +1,6 @@
-using Automation.ResolumeCompositionSwitcher.Core;
 using Automation.ResolumeCompositionSwitcher.Core.Models;
-using Automation.ResolumeCompositionSwitcher.Core.Params;
+using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
+using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeArenaProcessWrapper;
 using Automation.ResolumeCompositionSwitcher.WinForms.Controls;
 using System.Diagnostics;
 
@@ -8,24 +8,24 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 {
     public partial class ResolumeCompositionSwitcher : Form
     {
-        private const string SwitchForwardColumnKey = "{=}";
-        private const string SwitchBackwardColumnKey = "{-}";
+        private const string SwitchBackwardColumnKey = "{[}";
+        private const string SwitchForwardColumnKey = "{]}";
 
-        private readonly ICompositionSwitcher _compositionSwitcher;
+        private readonly CompositionSwitcher _compositionSwitcher;
 
-        public ResolumeCompositionSwitcher(ICompositionSwitcher compositionSwitcher)
+        public ResolumeCompositionSwitcher()
         {
             InitializeComponent();
-            _compositionSwitcher = compositionSwitcher;
-            _compositionSwitcher.CompositionParams = new CompositionParams
-            {
-                NumberOfColumns = (int)numberOfColumnsNumeric.Value,
-                MinTimeToChangeMs = (int)minTimeToChangeMsNumeric.Value,
-                MaxTimeToChangeMs = (int)maxTimeToChangeMsNumeric.Value
-            };
 
-            _compositionSwitcher.ResolumeArenaProcess.OnProcessConnected += ResolumeArenaProcess_OnProcessConnected;
-            _compositionSwitcher.ResolumeArenaProcess.OnProcessSetToForeground += ResolumeArenaProcess_OnProcessSetToForeground;
+            var compositionParams = new CompositionParams(
+                (int)numberOfColumnsNumeric.Value,
+                (int)minTimeToChangeMsNumeric.Value,
+                (int)maxTimeToChangeMsNumeric.Value);
+
+            _compositionSwitcher = new CompositionSwitcher(compositionParams);
+
+            _compositionSwitcher.ResolumeArenaProcess.OnProcessConnectionStatusChanged += ResolumeArenaProcess_OnProcessConnectionStatusChanged;
+            _compositionSwitcher.ResolumeArenaProcess.OnProcessForegroundChanged += ResolumeArenaProcess_OnProcessForegroundChanged;
             _compositionSwitcher.OnSwitchColumn += _compositionSwitcher_OnSwitchColumn;
             _compositionSwitcher.OnRandomizedSleepTime += _compositionSwitcher_OnRandomizedSleepTime;
         }
@@ -49,16 +49,16 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             });
         }
 
-        private void ResolumeArenaProcess_OnProcessConnected(object? sender, EventArgs e)
+        private void ResolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, EventArgs e)
         {
             var text = (e as MessageEventArgs).Message;
             connectionStatusLabel.SetText(text);
             playPauseButton.SetEnabled(_compositionSwitcher.ResolumeArenaProcess.Connected);
         }
 
-        private void ResolumeArenaProcess_OnProcessSetToForeground(object? sender, EventArgs e)
+        private void ResolumeArenaProcess_OnProcessForegroundChanged(object? sender, EventArgs e)
         {
-            var processVisibility = e as ProcessVisibilityEventArgs;
+            var processVisibility = e as ProcessForegroundEventArgs;
             isAppInForegroundLabel.SetText(processVisibility.Message);
 
             if (!processVisibility.IsInForeground)
@@ -87,12 +87,12 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 
         private void playPauseButton_MouseDown(object sender, MouseEventArgs e)
         {
-            if (!playPauseButton.Enabled || _compositionSwitcher.ResolumeArenaProcess.IsProccessInForeground())
+            if (!playPauseButton.Enabled || _compositionSwitcher.ResolumeArenaProcess.IsInForeground())
                 return;
 
             if (playPauseButton.IsPaused)
             {
-                _compositionSwitcher.ResolumeArenaProcess.SetProcessToForeground();
+                _compositionSwitcher.ResolumeArenaProcess.SetToForeground();
                 ToggleSwitcher(true);
             }
             else
@@ -109,34 +109,28 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 
         private void numberOfColumnsNumeric_ValueChanged(object sender, EventArgs e)
         {
-            _compositionSwitcher.CompositionParams = new CompositionParams()
-            {
-                NumberOfColumns = (int)numberOfColumnsNumeric.Value,
-                MinTimeToChangeMs = _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
-                MaxTimeToChangeMs = _compositionSwitcher.CompositionParams.MaxTimeToChangeMs,
-            };
+            _compositionSwitcher.CompositionParams = new CompositionParams(
+                (int)numberOfColumnsNumeric.Value,
+                _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
+                _compositionSwitcher.CompositionParams.MaxTimeToChangeMs);
 
             ToggleSwitcher(false);
         }
 
         private void minTimeToChangeMsNumeric_ValueChanged(object sender, EventArgs e)
         {
-            _compositionSwitcher.CompositionParams = new CompositionParams()
-            {
-                NumberOfColumns = _compositionSwitcher.CompositionParams.NumberOfColumns,
-                MinTimeToChangeMs = (int)minTimeToChangeMsNumeric.Value,
-                MaxTimeToChangeMs = _compositionSwitcher.CompositionParams.MaxTimeToChangeMs,
-            };
+            _compositionSwitcher.CompositionParams = new CompositionParams(
+                _compositionSwitcher.CompositionParams.NumberOfColumns,
+                (int)minTimeToChangeMsNumeric.Value,
+                _compositionSwitcher.CompositionParams.MaxTimeToChangeMs);
         }
 
         private void maxTimeToChangeMsNumeric_ValueChanged(object sender, EventArgs e)
         {
-            _compositionSwitcher.CompositionParams = new CompositionParams()
-            {
-                NumberOfColumns = _compositionSwitcher.CompositionParams.NumberOfColumns,
-                MinTimeToChangeMs = _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
-                MaxTimeToChangeMs = (int)maxTimeToChangeMsNumeric.Value,
-            };
+            _compositionSwitcher.CompositionParams = new CompositionParams(
+                _compositionSwitcher.CompositionParams.NumberOfColumns,
+                _compositionSwitcher.CompositionParams.MinTimeToChangeMs,
+                (int)maxTimeToChangeMsNumeric.Value);
         }
 
         private void currentColumnNumeric_ValueChanged(object sender, EventArgs e)

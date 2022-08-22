@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.ResolumeCompositionSwitcher.Core", "Automation.ResolumeCompositionSwitcher.Core\Automation.ResolumeCompositionSwitcher.Core.csproj", "{24CA3DAB-74A3-4582-A80F-BFBF26A0124E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.ResolumeCompositionSwitcher.WinForms", "Automation.ResolumeCompositionSwitcher.WinForms\Automation.ResolumeCompositionSwitcher.WinForms.csproj", "{CA74F1AE-9DC3-4F10-96D8-3A12DD4A933A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.ResolumeCompositionSwitcher.WinForms", "Automation.ResolumeCompositionSwitcher.WinForms\Automation.ResolumeCompositionSwitcher.WinForms.csproj", "{CA74F1AE-9DC3-4F10-96D8-3A12DD4A933A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

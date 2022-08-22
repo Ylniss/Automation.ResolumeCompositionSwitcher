@@ -1,4 +1,3 @@
-using Automation.ResolumeCompositionSwitcher.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -26,7 +25,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             return Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddTransient<ICompositionSwitcher, CompositionSwitcher>();
                     services.AddTransient<ResolumeCompositionSwitcher>();
                 });
         }

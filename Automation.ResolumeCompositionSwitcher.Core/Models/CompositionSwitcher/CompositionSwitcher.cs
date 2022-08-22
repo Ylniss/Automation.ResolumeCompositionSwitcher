@@ -1,12 +1,21 @@
-﻿using Automation.ResolumeCompositionSwitcher.Core.Models;
-using Automation.ResolumeCompositionSwitcher.Core.Params;
-using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaProcessWrapper;
+﻿using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeArenaProcessWrapper;
 
-namespace Automation.ResolumeCompositionSwitcher.Core;
+namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
-public class CompositionSwitcher : ICompositionSwitcher
+public class CompositionSwitcher
 {
-    public CompositionParams CompositionParams { get; set; }
+    private CompositionParams _compositionParams;
+
+    public CompositionParams CompositionParams
+    {
+        get => _compositionParams;
+        set
+        {
+            _compositionParams = value;
+            _columnsQueue = new ShuffledColumnsQueue(_compositionParams.NumberOfColumns);
+        }
+    }
+
     public ResolumeArenaProcess ResolumeArenaProcess { get; init; }
 
     public event EventHandler OnSwitchColumn;
@@ -19,40 +28,43 @@ public class CompositionSwitcher : ICompositionSwitcher
 
     public bool SwitchingEnabled { get; private set; } = false;
 
+    private ShuffledColumnsQueue _columnsQueue;
+
     public void ToggleSwitching(bool toggle)
     {
         SwitchingEnabled = toggle;
     }
 
-    public CompositionSwitcher()
+    public CompositionSwitcher(CompositionParams compositionParams)
     {
+        CompositionParams = compositionParams;
+
         ResolumeArenaProcess = new ResolumeArenaProcess();
         RunCompositionColumnSwitcher();
     }
 
     private void RunCompositionColumnSwitcher()
     {
-        ResolumeArenaProcess.SetProcessToForeground();
+        ResolumeArenaProcess.SetToForeground();
 
         Task.Run(async () =>
         {
             while (true)
             {
-                if (!ResolumeArenaProcess.IsProccessInForeground() || !SwitchingEnabled || CompositionParams is null) continue;
+                if (!ResolumeArenaProcess.IsInForeground() || !SwitchingEnabled || CompositionParams is null) continue;
 
-                RandomizeColumn();
+                SwitchToNextColumn();
 
                 await Task.Delay(GetRandomizedSleepTimeMs());
             }
         });
     }
 
-    private void RandomizeColumn()
+    private void SwitchToNextColumn()
     {
-        var randomizer = new Random();
-        int newColumn = randomizer.Next(1, CompositionParams.NumberOfColumns + 1);
+        int newColumn = _columnsQueue.Dequeue();
 
-        var moveSize = CurrentColumn - newColumn;
+        int moveSize = CurrentColumn - newColumn;
 
         if (moveSize < 0)
         {
@@ -77,7 +89,7 @@ public class CompositionSwitcher : ICompositionSwitcher
     private int GetRandomizedSleepTimeMs()
     {
         var randomizer = new Random();
-        var sleepTimeMs = randomizer.Next(CompositionParams.MinTimeToChangeMs, CompositionParams.MaxTimeToChangeMs + 1);
+        var sleepTimeMs = randomizer.Next(_compositionParams.MinTimeToChangeMs, _compositionParams.MaxTimeToChangeMs + 1);
 
         OnRandomizedSleepTime(this, new SleepTimeEventArgs() { SleepTimeMs = sleepTimeMs });
 

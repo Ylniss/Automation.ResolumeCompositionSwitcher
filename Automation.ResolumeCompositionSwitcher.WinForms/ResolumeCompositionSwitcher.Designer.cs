@@ -135,6 +135,11 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             0,
             0,
             0});
+            this.numberOfColumnsNumeric.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.numberOfColumnsNumeric.Name = "numberOfColumnsNumeric";
             this.numberOfColumnsNumeric.Size = new System.Drawing.Size(97, 30);
             this.numberOfColumnsNumeric.TabIndex = 7;
@@ -154,7 +159,12 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.minTimeToChangeMsNumeric.ForeColor = System.Drawing.Color.Gainsboro;
             this.minTimeToChangeMsNumeric.Location = new System.Drawing.Point(320, 153);
             this.minTimeToChangeMsNumeric.Maximum = new decimal(new int[] {
-            30000,
+            99999,
+            0,
+            0,
+            0});
+            this.minTimeToChangeMsNumeric.Minimum = new decimal(new int[] {
+            1,
             0,
             0,
             0});
@@ -163,7 +173,7 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.minTimeToChangeMsNumeric.TabIndex = 8;
             this.minTimeToChangeMsNumeric.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.minTimeToChangeMsNumeric.Value = new decimal(new int[] {
-            1000,
+            5000,
             0,
             0,
             0});
@@ -177,7 +187,12 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.maxTimeToChangeMsNumeric.ForeColor = System.Drawing.Color.Gainsboro;
             this.maxTimeToChangeMsNumeric.Location = new System.Drawing.Point(320, 201);
             this.maxTimeToChangeMsNumeric.Maximum = new decimal(new int[] {
-            30000,
+            99999,
+            0,
+            0,
+            0});
+            this.maxTimeToChangeMsNumeric.Minimum = new decimal(new int[] {
+            1,
             0,
             0,
             0});
@@ -186,7 +201,7 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.maxTimeToChangeMsNumeric.TabIndex = 9;
             this.maxTimeToChangeMsNumeric.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.maxTimeToChangeMsNumeric.Value = new decimal(new int[] {
-            3000,
+            15000,
             0,
             0,
             0});

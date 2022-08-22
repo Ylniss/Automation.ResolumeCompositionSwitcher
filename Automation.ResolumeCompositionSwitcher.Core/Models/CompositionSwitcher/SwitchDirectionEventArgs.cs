@@ -1,4 +1,4 @@
-﻿namespace Automation.ResolumeCompositionSwitcher.Core.Models;
+﻿namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
 public class SwitchDirectionEventArgs : EventArgs
 {
