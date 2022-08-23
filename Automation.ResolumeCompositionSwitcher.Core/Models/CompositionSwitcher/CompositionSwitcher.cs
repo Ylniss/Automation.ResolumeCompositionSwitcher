@@ -1,5 +1,6 @@
 ﻿using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
 using Refit;
+using System.Diagnostics;
 
 namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
@@ -23,6 +24,12 @@ public class CompositionSwitcher
 
     public event EventHandler OnRandomizedSwitchInterval;
 
+    public event EventHandler OnIntervalTick;
+
+    public event EventHandler OnBeforeChangeColumnRequest;
+
+    public event EventHandler OnAfterChangeColumnRequest;
+
     public bool SwitchingEnabled { get; private set; } = false;
 
     private ShuffledColumnsQueue _columnsQueue;
@@ -31,9 +38,28 @@ public class CompositionSwitcher
     private string _resolumeArenaApiAddress = "http://127.0.0.1:8080/api/v1/";
     private IResolumeArenaApi _resolumeArenaApi;
 
+    private CancellationTokenSource _cancellationTokenSource;
+    private CancellationToken _cancellationToken;
+
     public void ToggleSwitching(bool toggle)
     {
         SwitchingEnabled = toggle;
+
+        if (toggle is true)
+        {
+            try
+            {
+                RunCompositionColumnSwitcher();
+            }
+            catch (Exception)
+            {
+                OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Composition disconnected" });
+            }
+        }
+        //else
+        //{
+        //    _cancellationTokenSource.Cancel();
+        //}
     }
 
     public CompositionSwitcher(CompositionParams compositionParams)
@@ -41,24 +67,51 @@ public class CompositionSwitcher
         CompositionParams = compositionParams;
 
         _resolumeArenaApi = RestService.For<IResolumeArenaApi>(_resolumeArenaApiAddress);
-        RunCompositionColumnSwitcher();
     }
 
-    private void RunCompositionColumnSwitcher()
+    public void RunCompositionColumnSwitcher()
     {
+        _cancellationTokenSource = new CancellationTokenSource();
+        _cancellationToken = _cancellationTokenSource.Token;
+
         Task.Run(async () =>
         {
             while (true)
             {
                 SetRandomizedSwitchIntervalMs();
-
-                if (!SwitchingEnabled || CompositionParams is null) continue;
-
                 await SwitchToNextColumn();
 
-                await Task.Delay(_switchIntervalMs);
+                var stopWatch = new Stopwatch();
+
+                stopWatch.Start();
+                var elapsedMs = _switchIntervalMs;
+                while (elapsedMs > 0)
+                {
+                    elapsedMs = _switchIntervalMs - (int)stopWatch.ElapsedMilliseconds;
+
+                    if (!SwitchingEnabled)
+                    {
+                        elapsedMs = 0;
+
+                        _cancellationToken.ThrowIfCancellationRequested();
+                        break;
+                    }
+
+                    await Task.Delay(1, _cancellationToken);
+                    OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = elapsedMs });
+                }
+                stopWatch.Stop();
+
+                if (!SwitchingEnabled)
+                {
+                    OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = 0 });
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    break;
+                }
             }
         });
+
+        _cancellationTokenSource.Dispose();
     }
 
     private async Task SwitchToNextColumn()
@@ -67,11 +120,15 @@ public class CompositionSwitcher
 
         try
         {
+            OnBeforeChangeColumnRequest?.Invoke(this, EventArgs.Empty);
             await _resolumeArenaApi.ChangeColumn(newColumn);
+            OnAfterChangeColumnRequest?.Invoke(this, EventArgs.Empty);
         }
         catch (HttpRequestException)
         {
+            SwitchingEnabled = false;
             OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Composition disconnected" });
+            return;
         }
 
         OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connected to composition" });

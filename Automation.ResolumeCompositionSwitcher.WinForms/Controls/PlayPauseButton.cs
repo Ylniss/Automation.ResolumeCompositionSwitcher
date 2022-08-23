@@ -7,19 +7,30 @@ public class PlayPauseButton : Button
 
     public void TogglePlay(bool play)
     {
-        SetButtonImage(play);
-        Play = play;
-    }
-
-    private void SetButtonImage(bool play)
-    {
         if (play)
         {
-            BackgroundImage = Properties.Resources.pause1;
+            SetButtonImage("play");
         }
         else
         {
-            BackgroundImage = Properties.Resources.play_button_arrowhead1;
+            SetButtonImage("pause");
         }
+
+        Play = play;
+    }
+
+    public void ToggleLoading()
+    {
+        SetButtonImage("loading");
+    }
+
+    private void SetButtonImage(string imageName)
+    {
+        _ = imageName switch
+        {
+            "play" => BackgroundImage = Properties.Resources.pause1,
+            "loading" => BackgroundImage = Properties.Resources.loading,
+            _ => BackgroundImage = Properties.Resources.play_button_arrowhead1
+        };
     }
 }

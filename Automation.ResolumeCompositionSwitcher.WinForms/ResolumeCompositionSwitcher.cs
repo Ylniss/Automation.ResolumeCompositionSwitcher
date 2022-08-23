@@ -1,7 +1,6 @@
 using Automation.ResolumeCompositionSwitcher.Core.Models;
 using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 using Automation.ResolumeCompositionSwitcher.WinForms.Controls;
-using System.Diagnostics;
 
 namespace Automation.ResolumeCompositionSwitcher.WinForms
 {
@@ -22,38 +21,43 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
 
             _compositionSwitcher.OnColumnSwitch += _compositionSwitcher_OnColumnSwitch;
             _compositionSwitcher.OnResolumeApiConnectionChanged += _compositionSwitcher_OnResolumeApiConnectionChanged;
-            _compositionSwitcher.OnRandomizedSwitchInterval += _compositionSwitcher_OnRandomizedSwitchInterval;
+            _compositionSwitcher.OnIntervalTick += _compositionSwitcher_OnIntervalTick;
+            _compositionSwitcher.OnBeforeChangeColumnRequest += _compositionSwitcher_OnBeforeChangeColumnRequest;
+            _compositionSwitcher.OnAfterChangeColumnRequest += _compositionSwitcher_OnAfterChangeColumnRequest;
+        }
+
+        private void _compositionSwitcher_OnAfterChangeColumnRequest(object? sender, EventArgs e)
+        {
+            playPauseButton.TogglePlay(true);
+        }
+
+        private void _compositionSwitcher_OnBeforeChangeColumnRequest(object? sender, EventArgs e)
+        {
+            playPauseButton.ToggleLoading();
+        }
+
+        private void _compositionSwitcher_OnIntervalTick(object? sender, EventArgs e)
+        {
+            var elapsedMs = (e as SwitchIntervalEventArgs).IntervalMs;
+            nextSwitchMsTextBox.SetText(elapsedMs.ToString());
         }
 
         private void _compositionSwitcher_OnResolumeApiConnectionChanged(object? sender, EventArgs e)
         {
             var message = (e as MessageEventArgs).Message;
             connectionStatusLabel.SetText(message);
+
+            if (!_compositionSwitcher.SwitchingEnabled)
+            {
+                playPauseButton.TogglePlay(false);
+                nextSwitchMsTextBox.SetText("0");
+            }
         }
 
         private void _compositionSwitcher_OnColumnSwitch(object? sender, EventArgs e)
         {
             var column = (e as SwitchColumnEventArgs).Column;
             currentColumnTextBox.SetText(column.ToString());
-        }
-
-        private void _compositionSwitcher_OnRandomizedSwitchInterval(object? sender, EventArgs e)
-        {
-            var sleepTimeMs = (e as SwitchIntervalEventArgs).IntervalMs;
-
-            Task.Run(() =>
-            {
-                var stopWatch = new Stopwatch();
-
-                stopWatch.Start();
-                var elapsedMs = sleepTimeMs;
-                while (elapsedMs > 0)
-                {
-                    elapsedMs = sleepTimeMs - (int)stopWatch.ElapsedMilliseconds;
-                    nextSwitchMsTextBox.SetText(elapsedMs.ToString());
-                }
-                stopWatch.Stop();
-            });
         }
 
         private void playPauseButton_MouseDown(object sender, MouseEventArgs e)
