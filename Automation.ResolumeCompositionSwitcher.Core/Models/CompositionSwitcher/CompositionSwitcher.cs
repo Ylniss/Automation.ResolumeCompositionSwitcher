@@ -1,25 +1,18 @@
 ﻿using Automation.ResolumeCompositionSwitcher.Core.Extensions;
+using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeProcess;
+using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.StopTimer;
 using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
 using Refit;
-using System.Diagnostics;
 
 namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
 public class CompositionSwitcher
 {
-    private CompositionParams _compositionParams;
-
-    public CompositionParams CompositionParams
-    {
-        get => _compositionParams;
-        set
-        {
-            _compositionParams = value;
-            _columnsQueue = new ShuffledColumnsQueue(_compositionParams.NumberOfColumns);
-        }
-    }
+    public CompositionParams CompositionParams { get; set; }
 
     public event EventHandler OnResolumeApiConnectionChanged;
+
+    public event EventHandler OnResolumeProcessConnectionChanged;
 
     public event EventHandler OnColumnSwitch;
 
@@ -31,27 +24,57 @@ public class CompositionSwitcher
 
     public event EventHandler OnAfterChangeColumnRequest;
 
-    public bool SwitchingEnabled { get; private set; } = false;
+    public CompositionSwitcherState State { get; private set; } = CompositionSwitcherState.Paused;
+    public bool ProcessConnected => _resolumeArenaProcess.Connected;
 
-    private ShuffledColumnsQueue _columnsQueue;
+    private ShuffledColumnsList _shuffledColumns;
     private int _switchIntervalMs = 0;
 
     private string _resolumeArenaApiAddress = "http://127.0.0.1:8080/api/v1/";
     private IResolumeArenaApi _resolumeArenaApi;
 
+    private CountdownStopTimer _stopTimer = new CountdownStopTimer();
+    private ResolumeArenaProcess _resolumeArenaProcess = new ResolumeArenaProcess();
+
     public void ToggleSwitching(bool toggle)
     {
-        SwitchingEnabled = toggle;
+        if (toggle)
+            State = CompositionSwitcherState.Running;
+        else
+            State = CompositionSwitcherState.Paused;
 
-        if (SwitchingEnabled)
+        if (State == CompositionSwitcherState.Running)
             RunCompositionColumnSwitcher();
     }
 
     public CompositionSwitcher(CompositionParams compositionParams)
     {
         CompositionParams = compositionParams;
+        CompositionParams.OnNumberOfColumnsChanged += CompositionParams_OnNumberOfColumnsChanged;
+        _stopTimer.OnTick += _stopTimer_OnTick;
+        _resolumeArenaProcess.OnProcessConnectionStatusChanged += _resolumeArenaProcess_OnProcessConnectionStatusChanged;
+
+        _shuffledColumns = new ShuffledColumnsList(CompositionParams.NumberOfColumns);
 
         _resolumeArenaApi = RestService.For<IResolumeArenaApi>(_resolumeArenaApiAddress);
+    }
+
+    private void _resolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, EventArgs e)
+    {
+        OnResolumeProcessConnectionChanged?.Invoke(this, e);
+    }
+
+    private void _stopTimer_OnTick(object? sender, EventArgs e)
+    {
+        if (State != CompositionSwitcherState.Running)
+            e = new ElapsedMsEventArgs { ElapsedMs = _stopTimer.ElapsedMs = 0 };
+
+        OnIntervalTick?.Invoke(this, e);
+    }
+
+    private void CompositionParams_OnNumberOfColumnsChanged(object? sender, EventArgs e)
+    {
+        _shuffledColumns = new ShuffledColumnsList(CompositionParams.NumberOfColumns);
     }
 
     public void RunCompositionColumnSwitcher()
@@ -64,72 +87,60 @@ public class CompositionSwitcher
                 await SwitchToNextColumn();
                 await CountDownTimeToNextSwitch();
 
-                if (!SwitchingEnabled) // code smell and that above...
-                {
-                    OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = 0 });
-                    break;
-                }
+                if (State != CompositionSwitcherState.Running) break;
             }
         });
     }
 
     private async Task CountDownTimeToNextSwitch()
     {
-        var stopWatch = new Stopwatch();
-
-        stopWatch.Start();
-        var elapsedMs = _switchIntervalMs;
-        while (elapsedMs > 0)
-        {
-            elapsedMs = _switchIntervalMs - (int)stopWatch.ElapsedMilliseconds;
-
-            if (!SwitchingEnabled)
-            {
-                elapsedMs = 0;
-            }
-
-            OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = elapsedMs });
-            await Task.Delay(1);
-        }
-        stopWatch.Stop();
+        await _stopTimer.Countdown(_switchIntervalMs);
     }
 
-    private async Task SwitchToNextColumn()
+    public async Task SwitchToNextColumn()
     {
-        int newColumn = _columnsQueue.Dequeue();
+        var column = _shuffledColumns.Next();
+        await SwitchToColumn(column);
+    }
 
+    public async Task SwitchToPreviousColumn()
+    {
+        var column = _shuffledColumns.Previous();
+        await SwitchToColumn(column);
+    }
+
+    private async Task SwitchToColumn(int column)
+    {
         try
         {
+            State = CompositionSwitcherState.Loading;
             OnBeforeChangeColumnRequest?.Invoke(this, EventArgs.Empty);
-            await _resolumeArenaApi.ChangeColumn(newColumn).TimeoutAfter(TimeSpan.FromSeconds(3));
+            await _resolumeArenaApi.ChangeColumn(column).TimeoutAfter(TimeSpan.FromSeconds(3));
+            State = CompositionSwitcherState.Running;
             OnAfterChangeColumnRequest?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex) when (ex is HttpRequestException
                                    || ex is ApiException
                                    || ex is TimeoutException)
         {
-            SwitchingEnabled = false;
-            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connection to API Canceled. Composition disconnected" });
+            State = CompositionSwitcherState.Paused;
+            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connection to API failed. Composition disconnected" });
             return;
         }
 
         OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connected to composition" });
 
-        OnColumnSwitch?.Invoke(this, new SwitchColumnEventArgs() { Column = newColumn });
+        OnColumnSwitch?.Invoke(this, new SwitchColumnEventArgs() { Column = column });
     }
 
     private void SetRandomizedSwitchIntervalMs()
     {
-        if (SwitchingEnabled)
-        {
-            var randomizer = new Random();
-            _switchIntervalMs = randomizer.Next(_compositionParams.MinTimeToChangeMs, _compositionParams.MaxTimeToChangeMs + 1);
-        }
+        if (State == CompositionSwitcherState.Running)
+            _switchIntervalMs = new Random().
+                Next(CompositionParams.MinTimeToChangeMs, CompositionParams.MaxTimeToChangeMs + 1);
         else
-        {
             _switchIntervalMs = 0;
-        }
 
-        OnRandomizedSwitchInterval?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = _switchIntervalMs });
+        OnRandomizedSwitchInterval?.Invoke(this, new ElapsedMsEventArgs() { ElapsedMs = _switchIntervalMs });
     }
 }

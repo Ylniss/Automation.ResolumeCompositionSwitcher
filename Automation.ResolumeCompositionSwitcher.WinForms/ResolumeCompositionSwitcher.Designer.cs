@@ -43,7 +43,8 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.msUnitLabel = new System.Windows.Forms.Label();
             this.currentColumnTextBox = new System.Windows.Forms.TextBox();
             this.loadingPictureBox = new System.Windows.Forms.PictureBox();
-            this.playPauseButton = new PlayPauseButton(this.loadingPictureBox);
+            playPauseButton = new PlayPauseButton(loadingPictureBox);
+            this.processStatusLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfColumnsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.minTimeToChangeMsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxTimeToChangeMsNumeric)).BeginInit();
@@ -131,6 +132,11 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.minTimeToChangeMsNumeric.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.minTimeToChangeMsNumeric.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.minTimeToChangeMsNumeric.ForeColor = System.Drawing.Color.Gainsboro;
+            this.minTimeToChangeMsNumeric.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
             this.minTimeToChangeMsNumeric.Location = new System.Drawing.Point(320, 153);
             this.minTimeToChangeMsNumeric.Maximum = new decimal(new int[] {
             99999,
@@ -159,6 +165,11 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.maxTimeToChangeMsNumeric.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.maxTimeToChangeMsNumeric.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.maxTimeToChangeMsNumeric.ForeColor = System.Drawing.Color.Gainsboro;
+            this.maxTimeToChangeMsNumeric.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
             this.maxTimeToChangeMsNumeric.Location = new System.Drawing.Point(320, 201);
             this.maxTimeToChangeMsNumeric.Maximum = new decimal(new int[] {
             99999,
@@ -243,6 +254,19 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.currentColumnTextBox.Text = "0";
             this.currentColumnTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
+            // loadingPictureBox
+            // 
+            this.loadingPictureBox.BackColor = System.Drawing.Color.Transparent;
+            this.loadingPictureBox.Image = global::Automation.ResolumeCompositionSwitcher.WinForms.Properties.Resources.loading;
+            this.loadingPictureBox.Location = new System.Drawing.Point(708, 360);
+            this.loadingPictureBox.Margin = new System.Windows.Forms.Padding(30);
+            this.loadingPictureBox.Name = "loadingPictureBox";
+            this.loadingPictureBox.Size = new System.Drawing.Size(57, 55);
+            this.loadingPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.loadingPictureBox.TabIndex = 16;
+            this.loadingPictureBox.TabStop = false;
+            this.loadingPictureBox.Visible = false;
+            // 
             // playPauseButton
             // 
             this.playPauseButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
@@ -259,18 +283,16 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.playPauseButton.UseVisualStyleBackColor = false;
             this.playPauseButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.playPauseButton_MouseDown);
             // 
-            // loadingPictureBox
+            // processStatusLabel
             // 
-            this.loadingPictureBox.BackColor = System.Drawing.Color.Transparent;
-            this.loadingPictureBox.Image = global::Automation.ResolumeCompositionSwitcher.WinForms.Properties.Resources.loading;
-            this.loadingPictureBox.Location = new System.Drawing.Point(708, 360);
-            this.loadingPictureBox.Margin = new System.Windows.Forms.Padding(30);
-            this.loadingPictureBox.Name = "loadingPictureBox";
-            this.loadingPictureBox.Size = new System.Drawing.Size(57, 55);
-            this.loadingPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.loadingPictureBox.TabIndex = 16;
-            this.loadingPictureBox.TabStop = false;
-            this.loadingPictureBox.Visible = false;
+            this.processStatusLabel.AutoSize = true;
+            this.processStatusLabel.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.processStatusLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.processStatusLabel.Location = new System.Drawing.Point(552, 18);
+            this.processStatusLabel.Name = "processStatusLabel";
+            this.processStatusLabel.Size = new System.Drawing.Size(222, 23);
+            this.processStatusLabel.TabIndex = 17;
+            this.processStatusLabel.Text = "Process \'Arena\' is not found";
             // 
             // ResolumeCompositionSwitcher
             // 
@@ -278,6 +300,7 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.processStatusLabel);
             this.Controls.Add(this.loadingPictureBox);
             this.Controls.Add(this.currentColumnTextBox);
             this.Controls.Add(this.msUnitLabel);
@@ -323,5 +346,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         private Label msUnitLabel;
         private TextBox currentColumnTextBox;
         private PictureBox loadingPictureBox;
+        private Label processStatusLabel;
     }
 }

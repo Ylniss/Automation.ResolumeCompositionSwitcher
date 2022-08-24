@@ -3,15 +3,17 @@ using System.Collections.ObjectModel;
 
 namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher;
 
-public class ShuffledColumnsQueue : Collection<int>
+public class ShuffledColumnsList : Collection<int>
 {
-    private readonly Queue<int> _columnsQueue = new Queue<int>();
+    private readonly List<int> _columns = new List<int>();
 
     private const int _queueSetsCount = 10;
 
     private int _columnsCount;
 
-    public ShuffledColumnsQueue(int columnsCount)
+    private int _currentIndex = 0;
+
+    public ShuffledColumnsList(int columnsCount)
     {
         _columnsCount = columnsCount;
 
@@ -21,14 +23,20 @@ public class ShuffledColumnsQueue : Collection<int>
         }
     }
 
-    public int Dequeue()
+    public int Next()
     {
-        if (_columnsQueue.Count == 1)
-        {
+        if (_currentIndex == _columnsCount - 1)
             Repopulate();
-        }
 
-        return _columnsQueue.Dequeue();
+        return _columns[_currentIndex++];
+    }
+
+    public int Previous()
+    {
+        _currentIndex--;
+        if (_currentIndex < 0) _currentIndex = 0;
+
+        return _columns[_currentIndex];
     }
 
     private void Repopulate()
@@ -44,7 +52,7 @@ public class ShuffledColumnsQueue : Collection<int>
 
         foreach (var column in columns)
         {
-            _columnsQueue.Enqueue(column);
+            _columns.Add(column);
         }
     }
 }
