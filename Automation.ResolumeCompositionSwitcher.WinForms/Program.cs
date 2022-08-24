@@ -1,3 +1,4 @@
+using Automation.ResolumeCompositionSwitcher.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -26,6 +27,7 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
                 .ConfigureServices((context, services) =>
                 {
                     services.AddTransient<ResolumeCompositionSwitcher>();
+                    services.AddCoreServices();
                 });
         }
     }

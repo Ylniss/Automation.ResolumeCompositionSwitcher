@@ -2,7 +2,7 @@
 
 namespace Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.StopTimer;
 
-public class CountdownStopTimer
+internal class CountdownStopTimer
 {
     private int _elapsedMs = 0;
 
@@ -16,7 +16,7 @@ public class CountdownStopTimer
         }
     }
 
-    public event EventHandler OnTick;
+    public event EventHandler<ElapsedMsEventArgs> OnTick;
 
     public async Task Countdown(int milliseconds)
     {

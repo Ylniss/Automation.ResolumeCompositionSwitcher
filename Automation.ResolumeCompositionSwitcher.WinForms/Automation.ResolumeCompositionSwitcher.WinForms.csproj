@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>Resources\ResolumeCompositionSwitcher.manifest</ApplicationManifest>
+    <AssemblyName>ResolumeCompositionSwitcher</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

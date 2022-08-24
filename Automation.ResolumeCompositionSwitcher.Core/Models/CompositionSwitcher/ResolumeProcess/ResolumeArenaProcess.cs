@@ -7,10 +7,11 @@ public class ResolumeArenaProcess
     public string Name => "Arena";
     public bool Connected => _process != null;
 
-    public event EventHandler OnProcessConnectionStatusChanged;
+    private const int UpdateRateMs = 3000;
+
+    public event EventHandler<MessageEventArgs> OnProcessConnectionStatusChanged;
 
     private Process _process;
-    private int _updateRateMs = 100;
 
     public ResolumeArenaProcess()
     {
@@ -36,7 +37,7 @@ public class ResolumeArenaProcess
                     OnProcessConnectionStatusChanged?.Invoke(this, new MessageEventArgs() { Message = $"Process '{Name}' not found." });
                 }
 
-                await Task.Delay(_updateRateMs);
+                await Task.Delay(UpdateRateMs);
             }
         });
     }

@@ -1,4 +1,5 @@
-﻿using Automation.ResolumeCompositionSwitcher.Core.Extensions;
+﻿using Automation.ResolumeCompositionSwitcher.Core.Constants;
+using Automation.ResolumeCompositionSwitcher.Core.Extensions;
 using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.ResolumeProcess;
 using Automation.ResolumeCompositionSwitcher.Core.Models.CompositionSwitcher.StopTimer;
 using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
@@ -10,19 +11,19 @@ public class CompositionSwitcher
 {
     public CompositionParams CompositionParams { get; set; }
 
-    public event EventHandler OnResolumeApiConnectionChanged;
+    public event EventHandler<MessageEventArgs>? OnResolumeApiConnectionChanged;
 
-    public event EventHandler OnResolumeProcessConnectionChanged;
+    public event EventHandler<MessageEventArgs>? OnResolumeProcessConnectionChanged;
 
-    public event EventHandler OnColumnSwitch;
+    public event EventHandler<SwitchColumnEventArgs>? OnColumnSwitch;
 
-    public event EventHandler OnRandomizedSwitchInterval;
+    public event EventHandler<ElapsedMsEventArgs>? OnRandomizedSwitchInterval;
 
-    public event EventHandler OnIntervalTick;
+    public event EventHandler<ElapsedMsEventArgs>? OnIntervalTick;
 
-    public event EventHandler OnBeforeChangeColumnRequest;
+    public event EventHandler<MessageEventArgs>? OnBeforeChangeColumnRequest;
 
-    public event EventHandler OnAfterChangeColumnRequest;
+    public event EventHandler? OnAfterChangeColumnRequest;
 
     public CompositionSwitcherState State { get; private set; } = CompositionSwitcherState.Paused;
     public bool ProcessConnected => _resolumeArenaProcess.Connected;
@@ -51,6 +52,7 @@ public class CompositionSwitcher
     {
         CompositionParams = compositionParams;
         CompositionParams.OnNumberOfColumnsChanged += CompositionParams_OnNumberOfColumnsChanged;
+
         _stopTimer.OnTick += _stopTimer_OnTick;
         _resolumeArenaProcess.OnProcessConnectionStatusChanged += _resolumeArenaProcess_OnProcessConnectionStatusChanged;
 
@@ -59,12 +61,12 @@ public class CompositionSwitcher
         _resolumeArenaApi = RestService.For<IResolumeArenaApi>(_resolumeArenaApiAddress);
     }
 
-    private void _resolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, EventArgs e)
+    private void _resolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, MessageEventArgs e)
     {
         OnResolumeProcessConnectionChanged?.Invoke(this, e);
     }
 
-    private void _stopTimer_OnTick(object? sender, EventArgs e)
+    private void _stopTimer_OnTick(object? sender, ElapsedMsEventArgs e)
     {
         if (State != CompositionSwitcherState.Running)
             e = new ElapsedMsEventArgs { ElapsedMs = _stopTimer.ElapsedMs = 0 };
@@ -114,7 +116,7 @@ public class CompositionSwitcher
         try
         {
             State = CompositionSwitcherState.Loading;
-            OnBeforeChangeColumnRequest?.Invoke(this, EventArgs.Empty);
+            OnBeforeChangeColumnRequest?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectingToApiMessage });
             await _resolumeArenaApi.ChangeColumn(column).TimeoutAfter(TimeSpan.FromSeconds(3));
             State = CompositionSwitcherState.Running;
             OnAfterChangeColumnRequest?.Invoke(this, EventArgs.Empty);
@@ -124,11 +126,11 @@ public class CompositionSwitcher
                                    || ex is TimeoutException)
         {
             State = CompositionSwitcherState.Paused;
-            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connection to API failed. Composition disconnected" });
+            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectionToApiFailedMessage });
             return;
         }
 
-        OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connected to composition" });
+        OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectedToCompositionMessage });
 
         OnColumnSwitch?.Invoke(this, new SwitchColumnEventArgs() { Column = column });
     }

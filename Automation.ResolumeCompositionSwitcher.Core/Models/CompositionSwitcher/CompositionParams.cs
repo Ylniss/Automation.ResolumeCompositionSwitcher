@@ -6,7 +6,8 @@ public record CompositionParams
 {
     private int _numberOfColumns;
 
-    public event EventHandler OnNumberOfColumnsChanged;
+    public event EventHandler? OnNumberOfColumnsChanged;
+
     public int NumberOfColumns
     {
         get => _numberOfColumns;
@@ -28,7 +29,7 @@ public record CompositionParams
         {
             Guard.Against.Null(value, nameof(value));
             Guard.Against.NegativeOrZero(value, nameof(value));
-            if (value > _maxTimeToChangeMs)
+            if (_maxTimeToChangeMs != 0 && value > _maxTimeToChangeMs)
                 throw new ArgumentOutOfRangeException(nameof(value), "Minimum time cannot be greater than maximum time");
 
             _minTimeToChangeMs = value;
@@ -43,7 +44,7 @@ public record CompositionParams
         {
             Guard.Against.Null(value, nameof(value));
             Guard.Against.NegativeOrZero(value, nameof(value));
-            if (value < _minTimeToChangeMs)
+            if (_minTimeToChangeMs != 0 && value < _minTimeToChangeMs)
                 throw new ArgumentOutOfRangeException(nameof(value), "Maximum time cannot be less than minimum time");
 
             _maxTimeToChangeMs = value;
@@ -53,7 +54,7 @@ public record CompositionParams
     public CompositionParams(int numberOfColumns, int minTimeToChangeMs, int maxTimeToChangeMs)
     {
         NumberOfColumns = numberOfColumns;
-        MaxTimeToChangeMs = maxTimeToChangeMs;
         MinTimeToChangeMs = minTimeToChangeMs;
+        MaxTimeToChangeMs = maxTimeToChangeMs;
     }
 }

@@ -58,9 +58,9 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.connectionStatusLabel.ForeColor = System.Drawing.Color.Gainsboro;
             this.connectionStatusLabel.Location = new System.Drawing.Point(17, 18);
             this.connectionStatusLabel.Name = "connectionStatusLabel";
-            this.connectionStatusLabel.Size = new System.Drawing.Size(213, 23);
+            this.connectionStatusLabel.Size = new System.Drawing.Size(217, 23);
             this.connectionStatusLabel.TabIndex = 0;
-            this.connectionStatusLabel.Text = "Composition disconnected";
+            this.connectionStatusLabel.Text = "Composition disconnected.";
             // 
             // numberOfColumnsLabel
             // 
@@ -290,9 +290,9 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.processStatusLabel.ForeColor = System.Drawing.Color.Gainsboro;
             this.processStatusLabel.Location = new System.Drawing.Point(552, 18);
             this.processStatusLabel.Name = "processStatusLabel";
-            this.processStatusLabel.Size = new System.Drawing.Size(222, 23);
+            this.processStatusLabel.Size = new System.Drawing.Size(210, 23);
             this.processStatusLabel.TabIndex = 17;
-            this.processStatusLabel.Text = "Process \'Arena\' is not found";
+            this.processStatusLabel.Text = "Process \'Arena\' not found.";
             // 
             // ResolumeCompositionSwitcher
             // 
