@@ -5,32 +5,34 @@ public class PlayPauseButton : Button
     public bool Play { get; set; }
     public bool IsPaused => !Play;
 
+    private PictureBox _loadingPictureBox;
+
+    public PlayPauseButton(PictureBox loadingPictureBox)
+    {
+        _loadingPictureBox = loadingPictureBox;
+    }
+
     public void TogglePlay(bool play)
     {
-        if (play)
-        {
-            SetButtonImage("play");
-        }
-        else
-        {
-            SetButtonImage("pause");
-        }
+        _loadingPictureBox.SetVisible(false);
+        this.SetVisible(true);
+        SetButtonImage(play);
 
         Play = play;
     }
 
     public void ToggleLoading()
     {
-        SetButtonImage("loading");
+        this.SetVisible(false);
+        _loadingPictureBox.SetVisible(true);
     }
 
-    private void SetButtonImage(string imageName)
+    private void SetButtonImage(bool play)
     {
-        _ = imageName switch
+        _ = play switch
         {
-            "play" => BackgroundImage = Properties.Resources.pause1,
-            "loading" => BackgroundImage = Properties.Resources.loading,
-            _ => BackgroundImage = Properties.Resources.play_button_arrowhead1
+            true => BackgroundImage = Properties.Resources.pause1,
+            false => BackgroundImage = Properties.Resources.play_button_arrowhead1,
         };
     }
 }

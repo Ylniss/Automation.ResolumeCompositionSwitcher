@@ -31,7 +31,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         private void InitializeComponent()
         {
             this.connectionStatusLabel = new System.Windows.Forms.Label();
-            this.playPauseButton = new Automation.ResolumeCompositionSwitcher.WinForms.Controls.PlayPauseButton();
             this.numberOfColumnsLabel = new System.Windows.Forms.Label();
             this.minTimeToChangeMsLabel = new System.Windows.Forms.Label();
             this.maxTimeToChangeMsLabel = new System.Windows.Forms.Label();
@@ -43,9 +42,12 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.nextSwitchMsTextBox = new System.Windows.Forms.TextBox();
             this.msUnitLabel = new System.Windows.Forms.Label();
             this.currentColumnTextBox = new System.Windows.Forms.TextBox();
+            this.loadingPictureBox = new System.Windows.Forms.PictureBox();
+            this.playPauseButton = new PlayPauseButton(this.loadingPictureBox);
             ((System.ComponentModel.ISupportInitialize)(this.numberOfColumnsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.minTimeToChangeMsNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxTimeToChangeMsNumeric)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // connectionStatusLabel
@@ -58,22 +60,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.connectionStatusLabel.Size = new System.Drawing.Size(213, 23);
             this.connectionStatusLabel.TabIndex = 0;
             this.connectionStatusLabel.Text = "Composition disconnected";
-            // 
-            // playPauseButton
-            // 
-            this.playPauseButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
-            this.playPauseButton.BackgroundImage = global::Automation.ResolumeCompositionSwitcher.WinForms.Properties.Resources.play_button_arrowhead1;
-            this.playPauseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.playPauseButton.FlatAppearance.BorderSize = 0;
-            this.playPauseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.playPauseButton.Location = new System.Drawing.Point(708, 360);
-            this.playPauseButton.Margin = new System.Windows.Forms.Padding(30);
-            this.playPauseButton.Name = "playPauseButton";
-            this.playPauseButton.Play = false;
-            this.playPauseButton.Size = new System.Drawing.Size(57, 55);
-            this.playPauseButton.TabIndex = 3;
-            this.playPauseButton.UseVisualStyleBackColor = false;
-            this.playPauseButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.playPauseButton_MouseDown);
             // 
             // numberOfColumnsLabel
             // 
@@ -257,12 +243,42 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             this.currentColumnTextBox.Text = "0";
             this.currentColumnTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
+            // playPauseButton
+            // 
+            this.playPauseButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
+            this.playPauseButton.BackgroundImage = global::Automation.ResolumeCompositionSwitcher.WinForms.Properties.Resources.play_button_arrowhead1;
+            this.playPauseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.playPauseButton.FlatAppearance.BorderSize = 0;
+            this.playPauseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.playPauseButton.Location = new System.Drawing.Point(708, 360);
+            this.playPauseButton.Margin = new System.Windows.Forms.Padding(30);
+            this.playPauseButton.Name = "playPauseButton";
+            this.playPauseButton.Play = false;
+            this.playPauseButton.Size = new System.Drawing.Size(57, 55);
+            this.playPauseButton.TabIndex = 3;
+            this.playPauseButton.UseVisualStyleBackColor = false;
+            this.playPauseButton.MouseDown += new System.Windows.Forms.MouseEventHandler(this.playPauseButton_MouseDown);
+            // 
+            // loadingPictureBox
+            // 
+            this.loadingPictureBox.BackColor = System.Drawing.Color.Transparent;
+            this.loadingPictureBox.Image = global::Automation.ResolumeCompositionSwitcher.WinForms.Properties.Resources.loading;
+            this.loadingPictureBox.Location = new System.Drawing.Point(708, 360);
+            this.loadingPictureBox.Margin = new System.Windows.Forms.Padding(30);
+            this.loadingPictureBox.Name = "loadingPictureBox";
+            this.loadingPictureBox.Size = new System.Drawing.Size(57, 55);
+            this.loadingPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.loadingPictureBox.TabIndex = 16;
+            this.loadingPictureBox.TabStop = false;
+            this.loadingPictureBox.Visible = false;
+            // 
             // ResolumeCompositionSwitcher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.loadingPictureBox);
             this.Controls.Add(this.currentColumnTextBox);
             this.Controls.Add(this.msUnitLabel);
             this.Controls.Add(this.nextSwitchMsTextBox);
@@ -285,6 +301,7 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             ((System.ComponentModel.ISupportInitialize)(this.numberOfColumnsNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.minTimeToChangeMsNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxTimeToChangeMsNumeric)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.loadingPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -305,5 +322,6 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
         private TextBox nextSwitchMsTextBox;
         private Label msUnitLabel;
         private TextBox currentColumnTextBox;
+        private PictureBox loadingPictureBox;
     }
 }

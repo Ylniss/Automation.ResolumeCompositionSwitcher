@@ -18,6 +18,14 @@ public static class ControlExtensions
         }
     }
 
+    public static void SetVisible(this Control control, bool visible)
+    {
+        if (control.InvokeRequired)
+        {
+            control.Invoke(new MethodInvoker(() => { control.Visible = visible; }));
+        }
+    }
+
     public static void SetValue(this NumericUpDown numeric, int value)
     {
         if (numeric.InvokeRequired)

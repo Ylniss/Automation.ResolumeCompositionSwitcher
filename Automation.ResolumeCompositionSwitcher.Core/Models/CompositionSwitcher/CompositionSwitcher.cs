@@ -1,4 +1,5 @@
-﻿using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
+﻿using Automation.ResolumeCompositionSwitcher.Core.Extensions;
+using Automation.ResolumeCompositionSwitcher.Core.ResolumeArenaApi;
 using Refit;
 using System.Diagnostics;
 
@@ -38,28 +39,12 @@ public class CompositionSwitcher
     private string _resolumeArenaApiAddress = "http://127.0.0.1:8080/api/v1/";
     private IResolumeArenaApi _resolumeArenaApi;
 
-    private CancellationTokenSource _cancellationTokenSource;
-    private CancellationToken _cancellationToken;
-
     public void ToggleSwitching(bool toggle)
     {
         SwitchingEnabled = toggle;
 
-        if (toggle is true)
-        {
-            try
-            {
-                RunCompositionColumnSwitcher();
-            }
-            catch (Exception)
-            {
-                OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Composition disconnected" });
-            }
-        }
-        //else
-        //{
-        //    _cancellationTokenSource.Cancel();
-        //}
+        if (SwitchingEnabled)
+            RunCompositionColumnSwitcher();
     }
 
     public CompositionSwitcher(CompositionParams compositionParams)
@@ -71,47 +56,42 @@ public class CompositionSwitcher
 
     public void RunCompositionColumnSwitcher()
     {
-        _cancellationTokenSource = new CancellationTokenSource();
-        _cancellationToken = _cancellationTokenSource.Token;
-
         Task.Run(async () =>
         {
             while (true)
             {
                 SetRandomizedSwitchIntervalMs();
                 await SwitchToNextColumn();
+                await CountDownTimeToNextSwitch();
 
-                var stopWatch = new Stopwatch();
-
-                stopWatch.Start();
-                var elapsedMs = _switchIntervalMs;
-                while (elapsedMs > 0)
-                {
-                    elapsedMs = _switchIntervalMs - (int)stopWatch.ElapsedMilliseconds;
-
-                    if (!SwitchingEnabled)
-                    {
-                        elapsedMs = 0;
-
-                        _cancellationToken.ThrowIfCancellationRequested();
-                        break;
-                    }
-
-                    await Task.Delay(1, _cancellationToken);
-                    OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = elapsedMs });
-                }
-                stopWatch.Stop();
-
-                if (!SwitchingEnabled)
+                if (!SwitchingEnabled) // code smell and that above...
                 {
                     OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = 0 });
-                    _cancellationToken.ThrowIfCancellationRequested();
                     break;
                 }
             }
         });
+    }
 
-        _cancellationTokenSource.Dispose();
+    private async Task CountDownTimeToNextSwitch()
+    {
+        var stopWatch = new Stopwatch();
+
+        stopWatch.Start();
+        var elapsedMs = _switchIntervalMs;
+        while (elapsedMs > 0)
+        {
+            elapsedMs = _switchIntervalMs - (int)stopWatch.ElapsedMilliseconds;
+
+            if (!SwitchingEnabled)
+            {
+                elapsedMs = 0;
+            }
+
+            OnIntervalTick?.Invoke(this, new SwitchIntervalEventArgs() { IntervalMs = elapsedMs });
+            await Task.Delay(1);
+        }
+        stopWatch.Stop();
     }
 
     private async Task SwitchToNextColumn()
@@ -121,13 +101,15 @@ public class CompositionSwitcher
         try
         {
             OnBeforeChangeColumnRequest?.Invoke(this, EventArgs.Empty);
-            await _resolumeArenaApi.ChangeColumn(newColumn);
+            await _resolumeArenaApi.ChangeColumn(newColumn).TimeoutAfter(TimeSpan.FromSeconds(3));
             OnAfterChangeColumnRequest?.Invoke(this, EventArgs.Empty);
         }
-        catch (HttpRequestException)
+        catch (Exception ex) when (ex is HttpRequestException
+                                   || ex is ApiException
+                                   || ex is TimeoutException)
         {
             SwitchingEnabled = false;
-            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Composition disconnected" });
+            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = "Connection to API Canceled. Composition disconnected" });
             return;
         }
 

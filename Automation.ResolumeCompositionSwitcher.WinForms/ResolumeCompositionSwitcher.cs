@@ -26,14 +26,15 @@ namespace Automation.ResolumeCompositionSwitcher.WinForms
             _compositionSwitcher.OnAfterChangeColumnRequest += _compositionSwitcher_OnAfterChangeColumnRequest;
         }
 
-        private void _compositionSwitcher_OnAfterChangeColumnRequest(object? sender, EventArgs e)
-        {
-            playPauseButton.TogglePlay(true);
-        }
-
         private void _compositionSwitcher_OnBeforeChangeColumnRequest(object? sender, EventArgs e)
         {
             playPauseButton.ToggleLoading();
+            connectionStatusLabel.SetText("Connecting to Resolume API...");
+        }
+
+        private void _compositionSwitcher_OnAfterChangeColumnRequest(object? sender, EventArgs e)
+        {
+            playPauseButton.TogglePlay(true);
         }
 
         private void _compositionSwitcher_OnIntervalTick(object? sender, EventArgs e)

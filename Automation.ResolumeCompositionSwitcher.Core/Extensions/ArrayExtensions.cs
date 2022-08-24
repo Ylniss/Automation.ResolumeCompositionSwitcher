@@ -2,16 +2,16 @@
 
 public static class ArrayExtensions
 {
-    public static T[] Shuffle<T>(this T[] list)
+    public static T[] Shuffle<T>(this T[] array)
     {
         var random = new Random((int)DateTime.Now.Ticks);
-        for (int i = list.Length - 1; i > 0; i--)
+        for (int i = array.Length - 1; i > 0; i--)
         {
             int j = random.Next(0, i - 1);
-            var e = list[i];
-            list[i] = list[j];
-            list[j] = e;
+            var e = array[i];
+            array[i] = array[j];
+            array[j] = e;
         }
-        return list;
+        return array;
     }
 }
