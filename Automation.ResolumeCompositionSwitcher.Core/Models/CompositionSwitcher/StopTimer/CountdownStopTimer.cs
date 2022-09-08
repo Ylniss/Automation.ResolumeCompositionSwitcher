@@ -16,7 +16,7 @@ internal class CountdownStopTimer
         }
     }
 
-    public event EventHandler<ElapsedMsEventArgs> OnTick;
+    public event EventHandler<int> OnTick;
 
     public async Task Countdown(int milliseconds)
     {
@@ -28,7 +28,7 @@ internal class CountdownStopTimer
         {
             ElapsedMs = milliseconds - (int)stopWatch.ElapsedMilliseconds;
 
-            OnTick?.Invoke(this, new ElapsedMsEventArgs() { ElapsedMs = ElapsedMs });
+            OnTick?.Invoke(this, ElapsedMs);
             await Task.Delay(1);
         }
         stopWatch.Stop();

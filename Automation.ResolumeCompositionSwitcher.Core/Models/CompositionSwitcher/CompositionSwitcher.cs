@@ -11,17 +11,17 @@ public class CompositionSwitcher
 {
     public CompositionParams CompositionParams { get; set; }
 
-    public event EventHandler<MessageEventArgs>? OnResolumeApiConnectionChanged;
+    public event EventHandler<string>? OnResolumeApiConnectionChanged;
 
-    public event EventHandler<MessageEventArgs>? OnResolumeProcessConnectionChanged;
+    public event EventHandler<string>? OnResolumeProcessConnectionChanged;
 
-    public event EventHandler<SwitchColumnEventArgs>? OnColumnSwitch;
+    public event EventHandler<int>? OnColumnSwitch;
 
-    public event EventHandler<ElapsedMsEventArgs>? OnRandomizedSwitchInterval;
+    public event EventHandler<int>? OnRandomizedSwitchInterval;
 
-    public event EventHandler<ElapsedMsEventArgs>? OnIntervalTick;
+    public event EventHandler<int>? OnIntervalTick;
 
-    public event EventHandler<MessageEventArgs>? OnBeforeChangeColumnRequest;
+    public event EventHandler<string>? OnBeforeChangeColumnRequest;
 
     public event EventHandler? OnAfterChangeColumnRequest;
 
@@ -61,17 +61,17 @@ public class CompositionSwitcher
         _resolumeArenaApi = RestService.For<IResolumeArenaApi>(_resolumeArenaApiAddress);
     }
 
-    private void _resolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, MessageEventArgs e)
+    private void _resolumeArenaProcess_OnProcessConnectionStatusChanged(object? sender, string message)
     {
-        OnResolumeProcessConnectionChanged?.Invoke(this, e);
+        OnResolumeProcessConnectionChanged?.Invoke(this, message);
     }
 
-    private void _stopTimer_OnTick(object? sender, ElapsedMsEventArgs e)
+    private void _stopTimer_OnTick(object? sender, int elapsedMs)
     {
         if (State != CompositionSwitcherState.Running)
-            e = new ElapsedMsEventArgs { ElapsedMs = _stopTimer.ElapsedMs = 0 };
+            elapsedMs = _stopTimer.ElapsedMs = 0;
 
-        OnIntervalTick?.Invoke(this, e);
+        OnIntervalTick?.Invoke(this, elapsedMs);
     }
 
     private void CompositionParams_OnNumberOfColumnsChanged(object? sender, EventArgs e)
@@ -116,7 +116,7 @@ public class CompositionSwitcher
         try
         {
             State = CompositionSwitcherState.Loading;
-            OnBeforeChangeColumnRequest?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectingToApiMessage });
+            OnBeforeChangeColumnRequest?.Invoke(this, AppMessages.ConnectingToApiMessage);
             await _resolumeArenaApi.ChangeColumn(column).TimeoutAfter(TimeSpan.FromSeconds(3));
             State = CompositionSwitcherState.Running;
             OnAfterChangeColumnRequest?.Invoke(this, EventArgs.Empty);
@@ -126,13 +126,13 @@ public class CompositionSwitcher
                                    || ex is TimeoutException)
         {
             State = CompositionSwitcherState.Paused;
-            OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectionToApiFailedMessage });
+            OnResolumeApiConnectionChanged?.Invoke(this, AppMessages.ConnectionToApiFailedMessage);
             return;
         }
 
-        OnResolumeApiConnectionChanged?.Invoke(this, new MessageEventArgs() { Message = AppMessages.ConnectedToCompositionMessage });
+        OnResolumeApiConnectionChanged?.Invoke(this, AppMessages.ConnectedToCompositionMessage);
 
-        OnColumnSwitch?.Invoke(this, new SwitchColumnEventArgs() { Column = column });
+        OnColumnSwitch?.Invoke(this, column);
     }
 
     private void SetRandomizedSwitchIntervalMs()
@@ -143,6 +143,6 @@ public class CompositionSwitcher
         else
             _switchIntervalMs = 0;
 
-        OnRandomizedSwitchInterval?.Invoke(this, new ElapsedMsEventArgs() { ElapsedMs = _switchIntervalMs });
+        OnRandomizedSwitchInterval?.Invoke(this, _switchIntervalMs);
     }
 }
